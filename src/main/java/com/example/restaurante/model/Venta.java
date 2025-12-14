@@ -22,7 +22,7 @@ public class Venta {
 	private Long idventa;
     @ManyToOne
     @JoinColumn(name = "idpedido", nullable = false)
-	private Pedido  idpedido;
+    private Pedido pedido;
     @Column(nullable = false)
     private LocalDateTime fechaventa = LocalDateTime.now();
     @Column(nullable = false)
@@ -48,13 +48,13 @@ public class Venta {
 	}
 
 
-	public Pedido getIdpedido() {
-		return idpedido;
+	public Pedido getPedido() {
+		return pedido;
 	}
 
 
-	public void setIdpedido(Pedido idpedido) {
-		this.idpedido = idpedido;
+	public void setPedido(Pedido pedido) {
+		this.pedido = pedido;
 	}
 
 
@@ -88,6 +88,10 @@ public class Venta {
 	}
     
     
+    
+
+
+
     
 
 }

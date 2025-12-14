@@ -1,6 +1,7 @@
 package com.example.restaurante.model;
 
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -16,7 +17,8 @@ public class TipoConsumo {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long idtipoconsumo;
 
-    @Enumerated(EnumType.STRING)  // Se guardará como una cadena (MESA o PARA_LLEVAR)
+    @Enumerated(EnumType.STRING) 
+    @Column(name = "nombretipoconsumo", nullable = false)// Se guardará como una cadena (MESA o PARA_LLEVAR)
     private Tipo nombretipoconsumo;
 
     public enum Tipo {

@@ -42,7 +42,7 @@ public class RegistroEstadosService {
 
         // Crear venta
         Venta venta = new Venta();
-        venta.setIdpedido(pedido);
+        venta.setPedido(pedido);
         venta.setTotal(total);
         venta.setMetodopago(metodoPago);
         ventaRepository.save(venta);

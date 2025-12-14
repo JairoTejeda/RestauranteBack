@@ -10,11 +10,13 @@ import com.example.restaurante.service.MesaService;
 import com.example.restaurante.service.PedidoService;
 import com.example.restaurante.service.PlatosService;
 import com.example.restaurante.service.RegistroEstadosService;
+import com.example.restaurante.service.VentaService;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -51,6 +53,9 @@ public class MesaController {
     @Autowired
     private PlatosService platoservice;
     
+    @Autowired
+    private VentaService ventaService;
+    
     private final Path rootLocation = Paths.get("src/main/resources/imag");
     
     
@@ -68,11 +73,17 @@ public class MesaController {
 
             Pedido p = pedidoService.registrarPedido(pedido);
 
+            // 🔥 Calcular subtotal total
+            double subtotalTotal = p.getDetalles()
+                    .stream()
+                    .mapToDouble(det -> det.getSubtotal())
+                    .sum();
+
             Map<String, Object> respuesta = new HashMap<>();
-            respuesta.put("mensaje", "Pedido registrado con éxito");
             respuesta.put("idPedido", p.getIdpedido());
             respuesta.put("estado", p.getEstadopedido());
             respuesta.put("fecha", p.getFechapedido().toString());
+            respuesta.put("subtotal", subtotalTotal); // ⬅️ agregado
 
             return ResponseEntity.status(HttpStatus.CREATED).body(respuesta);
 
@@ -84,6 +95,7 @@ public class MesaController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
         }
     }
+
 
     
     
@@ -143,16 +155,55 @@ public class MesaController {
                 .body(null);
         }
     }
+    
+    
+    
+    @PostMapping("/pagarcuenta")
+    public ResponseEntity<Map<String, Object>> registrarVenta(
+            @RequestParam Long idPedido,
+            @RequestParam Venta.MetodoPago metodoPago) {
 
-    
+        try {
 
+            byte[] pdfBytes = ventaService.registrarVenta(idPedido, metodoPago);
+
+            if (pdfBytes == null || pdfBytes.length == 0) {
+                return ResponseEntity.badRequest().body(null);
+            }
+
+            // Convertir PDF a Base64
+            String pdfBase64 = Base64.getEncoder().encodeToString(pdfBytes);
+
+            // Crear respuesta JSON
+            Map<String, Object> response = new HashMap<>();
+            response.put("mensaje", "Venta registrada correctamente");
+            response.put("pdfBase64", pdfBase64);
+            response.put("idPedido", idPedido);
+
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            Map<String, Object> error = new HashMap<>();
+            error.put("error", e.getMessage());
+            return ResponseEntity.badRequest().body(error);
+        }
+    }
     
-    
-    
-    
-    
-    
-    
+    @GetMapping("/pedido/{idPedido}")
+    public ResponseEntity<Map<String, Object>> obtenerPedido(@PathVariable Long idPedido) {
+        Pedido pedido = ventaService.obtenerPedidoPorId(idPedido);
+
+        double total = pedido.getDetalles().stream()
+                .mapToDouble(d -> d.getPreciounitario() * d.getCantidad())
+                .sum();
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("idPedido", pedido.getIdpedido());
+        response.put("total", total);
+
+        return ResponseEntity.ok(response);
+    }
+
     
     
     
